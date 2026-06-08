@@ -30,15 +30,25 @@ export default function SeriesChartWidget({ widget, filters }) {
   if (!rawData || !Array.isArray(rawData) || rawData.length === 0) return null
 
   const xKey = chart.xAxis || 'date'
-  const chartData = rawData.map(d => {
-    const entry = { ...d }
-    if (typeof d[xKey] === 'string' && d[xKey].includes('-') && d[xKey].length === 10) {
-      entry._label = d[xKey].slice(5)
-    } else {
-      entry._label = d[xKey]
-    }
-    return entry
-  })
+  let chartData
+  // Si rawData es un dict {key: value}, convertirlo a [{name: key, value: value}]
+  if (rawData && typeof rawData === 'object' && !Array.isArray(rawData)) {
+    chartData = Object.entries(rawData).map(([k, v]) => {
+      const entry = { name: k, _label: k, value: typeof v === 'object' ? v.value || v.count || 0 : Number(v) || 0 }
+      if (typeof v === 'object') Object.assign(entry, v)
+      return entry
+    })
+  } else {
+    chartData = rawData.map(d => {
+      const entry = { ...d }
+      if (typeof d[xKey] === 'string' && d[xKey].includes('-') && d[xKey].length === 10) {
+        entry._label = d[xKey].slice(5)
+      } else {
+        entry._label = d[xKey]
+      }
+      return entry
+    })
+  }
 
   const { Chart, Series, seriesProps } = CHART_MAP[chartType] || CHART_MAP.line
   const series = chart.series || []

@@ -20,7 +20,7 @@ export const PRESETS = [
         width: 'full',
         height: 300,
         endpoint: '/api/flow',
-        field: '',
+        field: 'days',
         chart: {
           bars: [{ field: 'pending_by_team', stacked: true, colors: ['#58a6ff','#d29922','#3fb950','#bc8cff','#f0883e'] }],
           lines: [
@@ -125,7 +125,7 @@ export const PRESETS = [
         width: 'full',
         height: 280,
         endpoint: '/api/flow',
-        field: '',
+        field: 'days',
         chart: {
           series: [
             { field: 'new', name: 'nuevos', color: '#58a6ff' },
