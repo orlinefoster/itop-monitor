@@ -27,9 +27,9 @@ class AgentSummary(BaseModel):
     """Per-agent aggregated stats"""
     agent_id: str
     agent_name: str
-    pending: int = 0           # assigned + pending
-    resolved_today: int = 0    # resolved today
-    overdue: int = 0           # past SLA
+    pending: int = 0
+    resolved_today: int = 0
+    overdue: int = 0
     wip_limit: int = 6
     wip_ok: bool = True
 
@@ -54,3 +54,36 @@ class DashboardData(BaseModel):
     )
     last_updated: str = datetime.now().isoformat()
     refresh_seconds: int = 30
+
+
+# ── New models for filters and weekly dashboard ────────────
+
+class FilterOption(BaseModel):
+    id: str
+    name: str
+
+
+class FilterData(BaseModel):
+    organizations: list[FilterOption] = []
+    teams: list[FilterOption] = []
+    agents: list[FilterOption] = []
+
+
+class AgentWeekly(BaseModel):
+    agent_id: str
+    agent_name: str
+    new_assigned: int = 0
+    resolved: int = 0
+    total_active: int = 0
+
+
+class WeeklySummary(BaseModel):
+    """Weekly dashboard response"""
+    week_start: str = ""
+    week_end: str = ""
+    new_tickets: int = 0
+    open_tickets: int = 0
+    resolved_tickets: int = 0
+    total_active: int = 0
+    agents: list[AgentWeekly] = []
+    last_updated: str = datetime.now().isoformat()

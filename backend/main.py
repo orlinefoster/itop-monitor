@@ -16,7 +16,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from config import settings
 from database import CacheRefresher, get_cache, set_cache
 from itop_client import ItopClient, ItopError
-from models import AgentSummary, DashboardData, TeamStats, Ticket
+from models import (
+    AgentSummary,
+    AgentWeekly,
+    DashboardData,
+    FilterData,
+    FilterOption,
+    TeamStats,
+    Ticket,
+    WeeklySummary,
+)
 
 # ── App setup ────────────────────────────────────────────────
 
@@ -201,6 +210,117 @@ def force_refresh() -> dict:
 @app.get("/api/health")
 def health() -> dict:
     return {"status": "ok", "version": "0.1.0"}
+
+
+# ── Filters & Weekly endpoints ───────────────────────────────
+
+
+@app.get("/api/filters")
+def get_filters(org_id: int | None = None, team_id: int | None = None) -> dict:
+    """Return available organizations, teams, and agents for the filter bar."""
+    try:
+        orgs_raw = itop.get_organizations()
+        teams_raw = itop.get_teams(org_id=org_id)
+        agents_raw = itop.get_agents(team_id=team_id)
+    except ItopError as e:
+        logger.error("iTOP error fetching filters: %s", e)
+        return FilterData().model_dump()
+
+    data = FilterData(
+        organizations=[
+            FilterOption(id=str(o["id"]), name=o.get("friendlyname", o.get("name", "?")))
+            for o in orgs_raw
+        ],
+        teams=[
+            FilterOption(id=str(t["id"]), name=t.get("friendlyname", t.get("name", "?")))
+            for t in teams_raw
+        ],
+        agents=[
+            FilterOption(id=str(a["id"]), name=a.get("friendlyname", "?"))
+            for a in agents_raw
+        ],
+    )
+    return data.model_dump()
+
+
+@app.get("/api/weekly")
+def get_weekly(
+    org_id: int | None = None,
+    team_id: int | None = None,
+    agent_id: int | None = None,
+) -> dict:
+    """Weekly summary: new, open, resolved tickets, per-agent breakdown."""
+    import datetime as dt
+
+    today = dt.date.today()
+    # Monday of this week
+    week_start = today - dt.timedelta(days=today.weekday())
+    week_end = week_start + dt.timedelta(days=6)
+    since = week_start.isoformat()
+
+    try:
+        new_raw = itop.get_weekly_new_tickets(
+            since, org_id=org_id, team_id=team_id, agent_id=agent_id
+        )
+        resolved_raw = itop.get_weekly_resolved_tickets(
+            since, org_id=org_id, team_id=team_id, agent_id=agent_id
+        )
+        # Active (non-closed/resolved) tickets matching filters
+        active_oql = "SELECT UserRequest WHERE status NOT IN ('closed','resolved')"
+        if org_id:
+            active_oql += f" AND org_id = {org_id}"
+        if team_id:
+            active_oql += f" AND team_id = {team_id}"
+        if agent_id:
+            active_oql += f" AND agent_id = {agent_id}"
+        active_raw = itop.get("UserRequest", key=active_oql,
+                              output_fields="id, agent_id, friendlyname, status")
+    except ItopError as e:
+        logger.error("iTOP error in weekly query: %s", e)
+        new_raw = resolved_raw = active_raw = []
+
+    # ── Per-agent aggregation ──
+    agent_map: dict[str, dict] = {}
+
+    def ensure(aid: str, name_hint: str = ""):
+        if aid and aid not in agent_map:
+            agent_map[aid] = {
+                "agent_id": aid,
+                "agent_name": name_hint or f"Agente {aid}",
+                "new_assigned": 0,
+                "resolved": 0,
+                "total_active": 0,
+            }
+
+    for t in new_raw:
+        aid = str(t.get("agent_id", "")) or "unassigned"
+        ensure(aid, t.get("agent_name", ""))
+        agent_map[aid]["new_assigned"] += 1
+
+    for t in resolved_raw:
+        aid = str(t.get("agent_id", "")) or "unassigned"
+        ensure(aid, t.get("agent_name", ""))
+        agent_map[aid]["resolved"] += 1
+
+    for t in active_raw:
+        aid = str(t.get("agent_id", "")) or "unassigned"
+        ensure(aid, t.get("agent_name", ""))
+        agent_map[aid]["total_active"] += 1
+
+    agents_list = [
+        AgentWeekly(**v).model_dump()
+        for v in sorted(agent_map.values(), key=lambda x: x["total_active"], reverse=True)
+    ]
+
+    return WeeklySummary(
+        week_start=week_start.isoformat(),
+        week_end=week_end.isoformat(),
+        new_tickets=len(new_raw),
+        open_tickets=sum(1 for t in active_raw if t.get("status") != "resolved"),
+        resolved_tickets=len(resolved_raw),
+        total_active=len(active_raw),
+        agents=agents_list,
+    ).model_dump()
 
 
 # ── Direct run ───────────────────────────────────────────────

@@ -137,7 +137,71 @@ class ItopClient:
 
     def get_team_members(self, team_id: int) -> list[dict]:
         """Get persons belonging to a Team."""
-        # iTop models this via Team → lnkPersonToTeam → Person
-        # Simpler: get all persons with matching org / or from Agent list
         oql = f"SELECT Person WHERE id IN (SELECT person_id FROM lnkPersonToTeam WHERE team_id = {team_id})"
         return self.get("Person", key=oql, output_fields="id, friendlyname, email")
+
+    # ── filters ──────────────────────────────────────────────
+
+    def get_organizations(self) -> list[dict]:
+        """All organizations (clients/departments)."""
+        return self.get(
+            "Organization",
+            key="SELECT Organization",
+            output_fields="id, friendlyname, name, code",
+        )
+
+    def get_teams(self, org_id: int | None = None) -> list[dict]:
+        """All teams, optionally filtered by organization."""
+        oql = "SELECT Team"
+        if org_id:
+            oql += f" WHERE org_id = {org_id}"
+        return self.get(
+            "Team", key=oql, output_fields="id, friendlyname, name, org_id"
+        )
+
+    def get_agents(self, team_id: int | None = None) -> list[dict]:
+        """Persons who can be agents, optionally filtered by team."""
+        if team_id:
+            oql = (
+                "SELECT Person WHERE id IN"
+                f" (SELECT person_id FROM lnkPersonToTeam WHERE team_id = {team_id})"
+            )
+        else:
+            oql = "SELECT Person"
+        return self.get(
+            "Person", key=oql, output_fields="id, friendlyname, email, org_id"
+        )
+
+    # ── weekly stats ─────────────────────────────────────────
+
+    def get_weekly_new_tickets(
+        self, since: str, org_id: int | None = None,
+        team_id: int | None = None, agent_id: int | None = None,
+    ) -> list[dict]:
+        """Tickets created since a date, with optional filters."""
+        oql = f"SELECT UserRequest WHERE start_date >= '{since}'"
+        if org_id:
+            oql += f" AND org_id = {org_id}"
+        if team_id:
+            oql += f" AND team_id = {team_id}"
+        if agent_id:
+            oql += f" AND agent_id = {agent_id}"
+        return self.get("UserRequest", key=oql,
+                        output_fields="id, friendlyname, title, status, "
+                                      "agent_id, org_id, team_id, start_date")
+
+    def get_weekly_resolved_tickets(
+        self, since: str, org_id: int | None = None,
+        team_id: int | None = None, agent_id: int | None = None,
+    ) -> list[dict]:
+        """Tickets resolved since a date, with optional filters."""
+        oql = f"SELECT UserRequest WHERE status = 'resolved' AND last_update >= '{since}'"
+        if org_id:
+            oql += f" AND org_id = {org_id}"
+        if team_id:
+            oql += f" AND team_id = {team_id}"
+        if agent_id:
+            oql += f" AND agent_id = {agent_id}"
+        return self.get("UserRequest", key=oql,
+                        output_fields="id, friendlyname, title, status, "
+                                      "agent_id, org_id, team_id, start_date, last_update")
