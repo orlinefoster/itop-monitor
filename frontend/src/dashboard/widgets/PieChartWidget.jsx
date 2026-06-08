@@ -118,6 +118,7 @@ export default function PieChartWidget({ widget, filters }) {
               border: '1px solid var(--border)',
               borderRadius: '4px',
               fontSize: '11px',
+              color: 'var(--text-primary)',
             }}
           />
           <Legend
