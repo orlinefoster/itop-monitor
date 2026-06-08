@@ -1,0 +1,35 @@
+# ── Credenciales y config local ──
+.env
+.env.local
+.env.*
+# Pero el template .env.example sí queremos trackearlo
+!.env.example
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# ── Cache de datos (contiene info de tickets) ──
+*.db
+*.sqlite
+
+# ── Node / Frontend ──
+node_modules/
+dist/
+.cache/
+
+# ── Editor / OS ──
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Logs ──
+*.log
