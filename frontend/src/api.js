@@ -31,3 +31,15 @@ export async function fetchWeekly(orgId, teamId, agentId, dateFrom, dateTo) {
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
 }
+
+export async function fetchFlow(dateFrom, dateTo, orgId, teamId, agentId) {
+  const params = new URLSearchParams()
+  if (dateFrom) params.set('date_from', dateFrom)
+  if (dateTo) params.set('date_to', dateTo)
+  if (orgId) params.set('org_id', orgId)
+  if (teamId) params.set('team_id', teamId)
+  if (agentId) params.set('agent_id', agentId)
+  const res = await fetch(`${BASE}/flow?${params}`)
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}

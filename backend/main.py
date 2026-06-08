@@ -22,6 +22,8 @@ from models import (
     DashboardData,
     FilterData,
     FilterOption,
+    FlowDay,
+    FlowData,
     TeamStats,
     Ticket,
     WeeklySummary,
@@ -385,6 +387,100 @@ def get_weekly(
         total_active=len(active_raw),
         agents=agents_list,
     ).model_dump()
+
+
+# ── Flow endpoint (timeline chart) ────────────────────────────
+
+
+@app.get("/api/flow")
+def get_flow(
+    date_from: str | None = None,
+    date_to: str | None = None,
+    org_id: int | None = None,
+    team_id: int | None = None,
+    agent_id: int | None = None,
+) -> dict:
+    """Daily flow data: new tickets, resolved tickets, and cumulative pending
+    over a date range. Defaults to the current week.
+    """
+    import datetime as dt
+
+    # ── Default date range: current week ──
+    if date_from:
+        since = date_from
+        until = date_to if date_to else date_from
+    else:
+        today = dt.date.today()
+        week_start = today - dt.timedelta(days=today.weekday())
+        since = week_start.isoformat()
+        until = date_to or (week_start + dt.timedelta(days=6)).isoformat()
+
+    try:
+        # Active tickets before the range (= starting backlog)
+        backlog_raw = itop.get_active_tickets_before(
+            since, org_id=org_id, team_id=team_id, agent_id=agent_id
+        )
+
+        # Tickets created within the range
+        new_oql = (
+            f"SELECT UserRequest WHERE start_date >= '{since}'"
+            f" AND start_date <= '{until} 23:59:59'"
+        )
+        if org_id:
+            new_oql += f" AND org_id = {org_id}"
+        if team_id:
+            new_oql += f" AND team_id = {team_id}"
+        if agent_id:
+            new_oql += f" AND agent_id = {agent_id}"
+        new_raw = itop.get("UserRequest", key=new_oql,
+                           output_fields="id, status, start_date")
+
+        # Tickets resolved within the range
+        res_oql = (
+            f"SELECT UserRequest WHERE status = 'resolved'"
+            f" AND last_update >= '{since}'"
+            f" AND last_update <= '{until} 23:59:59'"
+        )
+        if org_id:
+            res_oql += f" AND org_id = {org_id}"
+        if team_id:
+            res_oql += f" AND team_id = {team_id}"
+        if agent_id:
+            res_oql += f" AND agent_id = {agent_id}"
+        resolved_raw = itop.get("UserRequest", key=res_oql,
+                                output_fields="id, status, last_update")
+    except ItopError as e:
+        logger.error("iTOP error in flow query: %s", e)
+        backlog_raw = new_raw = resolved_raw = []
+
+    # ── Build daily data points ──
+    start = dt.date.fromisoformat(since)
+    end = dt.date.fromisoformat(until)
+    days: list[FlowDay] = []
+    cumulative = len(backlog_raw)
+
+    for i in range((end - start).days + 1):
+        day = start + dt.timedelta(days=i)
+        day_str = day.isoformat()
+
+        new_count = sum(
+            1 for t in new_raw
+            if t.get("start_date", "").startswith(day_str)
+        )
+        resolved_count = sum(
+            1 for t in resolved_raw
+            if t.get("last_update", "").startswith(day_str)
+        )
+        cumulative = cumulative + new_count - resolved_count
+
+        days.append(FlowDay(
+            date=day_str,
+            new=new_count,
+            resolved=resolved_count,
+            pending=max(cumulative, 0),
+        ))
+
+    return FlowData(days=days, starting_pending=len(backlog_raw)).model_dump()
 
 
 # ── Direct run ───────────────────────────────────────────────

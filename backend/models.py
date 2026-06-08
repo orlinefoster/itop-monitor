@@ -87,3 +87,18 @@ class WeeklySummary(BaseModel):
     total_active: int = 0
     agents: list[AgentWeekly] = []
     last_updated: str = datetime.now().isoformat()
+
+
+# ── Flow / timeline models ───────────────────────────────────
+
+
+class FlowDay(BaseModel):
+    date: str
+    new: int = 0
+    resolved: int = 0
+    pending: int = 0
+
+
+class FlowData(BaseModel):
+    days: list[FlowDay] = []
+    starting_pending: int = 0

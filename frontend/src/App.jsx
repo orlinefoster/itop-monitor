@@ -7,7 +7,7 @@ import AgentsView from './components/AgentsView.jsx'
 
 const POLL_INTERVAL = 30_000
 const TABS = [
-  { key: 'dashboard', label: 'dashboard' },
+  { key: 'dashboard', label: 'resumen' },
   { key: 'tickets',   label: 'tickets' },
   { key: 'agentes',   label: 'agentes' },
 ]

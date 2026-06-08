@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { fetchWeekly } from '../api.js'
+import FlowChart from './FlowChart.jsx'
 
 export default function WeeklyDashboard({ filters }) {
   const [data, setData] = useState(null)
@@ -126,6 +127,9 @@ export default function WeeklyDashboard({ filters }) {
           </div>
         )}
       </div>
+
+      {/* ── Flow chart ── */}
+      <FlowChart filters={filters} />
     </>
   )
 }

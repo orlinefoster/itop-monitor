@@ -127,6 +127,26 @@ class ItopClient:
             oql += f" AND team_id = {team_id}"
         return self.get("UserRequest", key=oql, output_fields="*+")
 
+    def get_active_tickets_before(
+        self, date: str,
+        org_id: int | None = None,
+        team_id: int | None = None,
+        agent_id: int | None = None,
+    ) -> list[dict]:
+        """Tickets that were active (not closed/resolved) before a given date."""
+        oql = (
+            f"SELECT UserRequest WHERE status NOT IN ('closed','resolved')"
+            f" AND start_date < '{date}'"
+        )
+        if org_id:
+            oql += f" AND org_id = {org_id}"
+        if team_id:
+            oql += f" AND team_id = {team_id}"
+        if agent_id:
+            oql += f" AND agent_id = {agent_id}"
+        return self.get("UserRequest", key=oql,
+                        output_fields="id, agent_id, friendlyname, status")
+
     def get_agent_tickets(self, agent_id: int) -> list[dict]:
         """Active tickets assigned to a specific agent."""
         oql = (

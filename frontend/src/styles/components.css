@@ -533,3 +533,13 @@ tbody td {
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
 }
+
+/* ─── Flow Chart ─── */
+
+.flow-chart-section {
+  padding: 20px;
+}
+
+.flow-chart-section .recharts-surface {
+  cursor: crosshair;
+}
