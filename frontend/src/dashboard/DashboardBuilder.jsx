@@ -35,16 +35,39 @@ export default function DashboardBuilder({ activeDashboard, filters, editing }) 
 
   const handleAddWidget = (type) => {
     setShowingGallery(false)
+
+    // Default chart config por tipo
+    let chart
+    let columns
+    if (type === 'composed-chart') {
+      chart = {
+        bars: [{ field: 'pending_by_team', stacked: true, colors: ['#58a6ff','#d29922','#3fb950','#bc8cff'] }],
+        lines: [{ field: 'new', name: 'nuevos', color: '#58a6ff', width: 2 }],
+        xAxis: 'date', showLegend: true, showGrid: true,
+      }
+    } else if (['line-chart', 'bar-chart', 'area-chart'].includes(type)) {
+      chart = {
+        series: [{ field: 'new', name: 'nuevos', color: '#58a6ff' }],
+        xAxis: 'date', showLegend: true, showGrid: true,
+      }
+    } else if (type === 'pie-chart') {
+      chart = { donut: true }
+    }
+
+    if (type === 'table') {
+      columns = []
+    }
+
     const widget = {
       id: `w-${Date.now()}`,
       type,
       title: type.replace('-', ' '),
       width: 'full',
-      endpoint: '/api/weekly',
-      field: '',
+      endpoint: type === 'composed-chart' || type === 'pie-chart' ? '/api/flow' : '/api/weekly',
+      field: type === 'pie-chart' ? 'days[last].pending_by_team' : '',
       style: {},
-      chart: type === 'composed-chart' ? { bars: [], lines: [], xAxis: 'date', showLegend: true, showGrid: true } : undefined,
-      columns: type === 'table' ? [] : undefined,
+      chart,
+      columns,
       showSummary: type === 'table',
     }
     addWidget(activeDashboard.id, widget)

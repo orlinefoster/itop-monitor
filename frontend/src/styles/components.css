@@ -858,6 +858,25 @@ tbody td {
   border-color: var(--accent-green);
 }
 
+.config-textarea {
+  padding: 6px 8px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  outline: none;
+  resize: vertical;
+  min-height: 60px;
+  transition: border-color var(--transition);
+  line-height: 1.5;
+}
+
+.config-textarea:focus {
+  border-color: var(--accent-green);
+}
+
 .config-select {
   cursor: pointer;
 }

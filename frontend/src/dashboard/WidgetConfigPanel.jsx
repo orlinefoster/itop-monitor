@@ -45,6 +45,8 @@ const FIELDS_BY_TYPE = {
     { key: 'chart.showLegend', label: 'Mostrar leyenda', type: 'toggle' },
     { key: 'chart.showGrid', label: 'Mostrar grilla', type: 'toggle' },
     { key: 'chart.tooltip', label: 'Tooltip', type: 'toggle' },
+    { key: 'chart.bars', label: 'Barras (JSON)', type: 'json', placeholder: '[{ "field": "...", "stacked": true }]' },
+    { key: 'chart.lines', label: 'Líneas (JSON)', type: 'json', placeholder: '[{ "field": "...", "color": "#hex" }]' },
   ],
   'line-chart': [
     { key: 'title', label: 'Título', type: 'text' },
@@ -56,6 +58,7 @@ const FIELDS_BY_TYPE = {
     { key: 'chart.stacked', label: 'Apilado', type: 'toggle' },
     { key: 'chart.showLegend', label: 'Mostrar leyenda', type: 'toggle' },
     { key: 'chart.showGrid', label: 'Mostrar grilla', type: 'toggle' },
+    { key: 'chart.series', label: 'Series (JSON)', type: 'json', placeholder: '[{ "field": "...", "name": "...", "color": "#hex" }]' },
   ],
   'bar-chart': [
     { key: 'title', label: 'Título', type: 'text' },
@@ -67,6 +70,7 @@ const FIELDS_BY_TYPE = {
     { key: 'chart.stacked', label: 'Apilado', type: 'toggle' },
     { key: 'chart.showLegend', label: 'Mostrar leyenda', type: 'toggle' },
     { key: 'chart.showGrid', label: 'Mostrar grilla', type: 'toggle' },
+    { key: 'chart.series', label: 'Series (JSON)', type: 'json', placeholder: '[{ "field": "...", "name": "...", "color": "#hex" }]' },
   ],
   'area-chart': [
     { key: 'title', label: 'Título', type: 'text' },
@@ -78,6 +82,7 @@ const FIELDS_BY_TYPE = {
     { key: 'chart.stacked', label: 'Apilado', type: 'toggle' },
     { key: 'chart.showLegend', label: 'Mostrar leyenda', type: 'toggle' },
     { key: 'chart.showGrid', label: 'Mostrar grilla', type: 'toggle' },
+    { key: 'chart.series', label: 'Series (JSON)', type: 'json', placeholder: '[{ "field": "...", "name": "...", "color": "#hex" }]' },
   ],
   'pie-chart': [
     { key: 'title', label: 'Título', type: 'text' },
@@ -88,6 +93,7 @@ const FIELDS_BY_TYPE = {
     { key: 'chart.donut', label: 'Modo dona', type: 'toggle' },
     { key: 'chart.nameField', label: 'Campo nombre', type: 'text', placeholder: 'name' },
     { key: 'chart.valueField', label: 'Campo valor', type: 'text', placeholder: 'value' },
+    { key: 'chart.colors', label: 'Colores (JSON)', type: 'json', placeholder: '["#hex1", "#hex2"]' },
   ],
   'table': [
     { key: 'title', label: 'Título', type: 'text' },
@@ -172,6 +178,27 @@ export default function WidgetConfigPanel({ widget, onSave, onClose }) {
                     placeholder="#hex"
                   />
                 </div>
+              ) : f.type === 'json' ? (
+                <textarea
+                  className="config-textarea"
+                  rows={4}
+                  value={(() => {
+                    try {
+                      const v = getNested(widget, f.key)
+                      return v ? JSON.stringify(v, null, 2) : ''
+                    } catch { return '' }
+                  })()}
+                  onChange={e => {
+                    try {
+                      const parsed = JSON.parse(e.target.value)
+                      handleChange(f.key, parsed)
+                    } catch {
+                      // Allow editing invalid JSON — store raw string
+                      handleChange(f.key, e.target.value)
+                    }
+                  }}
+                  placeholder={f.placeholder || '[]'}
+                />
               ) : (
                 <input
                   type={f.type || 'text'}
