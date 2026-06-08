@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import SeriesEditor from './SeriesEditor.jsx'
 
 /**
  * Sets a nested value in an object given a dot-separated path.
@@ -45,8 +46,18 @@ const FIELDS_BY_TYPE = {
     { key: 'chart.showLegend', label: 'Mostrar leyenda', type: 'toggle' },
     { key: 'chart.showGrid', label: 'Mostrar grilla', type: 'toggle' },
     { key: 'chart.tooltip', label: 'Tooltip', type: 'toggle' },
-    { key: 'chart.bars', label: 'Barras (JSON)', type: 'json', placeholder: '[{ "field": "...", "stacked": true }]' },
-    { key: 'chart.lines', label: 'Líneas (JSON)', type: 'json', placeholder: '[{ "field": "...", "color": "#hex" }]' },
+    { key: 'chart.bars', label: 'Barras', type: 'series', itemLabel: 'barra',
+      fields: [
+        { key: 'field', label: 'Campo', placeholder: 'pending_by_team' },
+        { key: 'name', label: 'Nombre', placeholder: 'Pendientes' },
+        { key: 'color', label: 'Color', type: 'color' },
+      ] },
+    { key: 'chart.lines', label: 'Líneas', type: 'series', itemLabel: 'línea',
+      fields: [
+        { key: 'field', label: 'Campo', placeholder: 'new' },
+        { key: 'name', label: 'Nombre', placeholder: 'Nuevos' },
+        { key: 'color', label: 'Color', type: 'color' },
+      ] },
   ],
   'line-chart': [
     { key: 'title', label: 'Título', type: 'text' },
@@ -58,7 +69,12 @@ const FIELDS_BY_TYPE = {
     { key: 'chart.stacked', label: 'Apilado', type: 'toggle' },
     { key: 'chart.showLegend', label: 'Mostrar leyenda', type: 'toggle' },
     { key: 'chart.showGrid', label: 'Mostrar grilla', type: 'toggle' },
-    { key: 'chart.series', label: 'Series (JSON)', type: 'json', placeholder: '[{ "field": "...", "name": "...", "color": "#hex" }]' },
+    { key: 'chart.series', label: 'Series', type: 'series', itemLabel: 'serie',
+      fields: [
+        { key: 'field', label: 'Campo', placeholder: 'new' },
+        { key: 'name', label: 'Nombre', placeholder: 'Nuevos' },
+        { key: 'color', label: 'Color', type: 'color' },
+      ] },
   ],
   'bar-chart': [
     { key: 'title', label: 'Título', type: 'text' },
@@ -70,7 +86,12 @@ const FIELDS_BY_TYPE = {
     { key: 'chart.stacked', label: 'Apilado', type: 'toggle' },
     { key: 'chart.showLegend', label: 'Mostrar leyenda', type: 'toggle' },
     { key: 'chart.showGrid', label: 'Mostrar grilla', type: 'toggle' },
-    { key: 'chart.series', label: 'Series (JSON)', type: 'json', placeholder: '[{ "field": "...", "name": "...", "color": "#hex" }]' },
+    { key: 'chart.series', label: 'Series', type: 'series', itemLabel: 'serie',
+      fields: [
+        { key: 'field', label: 'Campo', placeholder: 'new' },
+        { key: 'name', label: 'Nombre', placeholder: 'Nuevos' },
+        { key: 'color', label: 'Color', type: 'color' },
+      ] },
   ],
   'area-chart': [
     { key: 'title', label: 'Título', type: 'text' },
@@ -82,7 +103,12 @@ const FIELDS_BY_TYPE = {
     { key: 'chart.stacked', label: 'Apilado', type: 'toggle' },
     { key: 'chart.showLegend', label: 'Mostrar leyenda', type: 'toggle' },
     { key: 'chart.showGrid', label: 'Mostrar grilla', type: 'toggle' },
-    { key: 'chart.series', label: 'Series (JSON)', type: 'json', placeholder: '[{ "field": "...", "name": "...", "color": "#hex" }]' },
+    { key: 'chart.series', label: 'Series', type: 'series', itemLabel: 'serie',
+      fields: [
+        { key: 'field', label: 'Campo', placeholder: 'new' },
+        { key: 'name', label: 'Nombre', placeholder: 'Nuevos' },
+        { key: 'color', label: 'Color', type: 'color' },
+      ] },
   ],
   'pie-chart': [
     { key: 'title', label: 'Título', type: 'text' },
@@ -93,7 +119,10 @@ const FIELDS_BY_TYPE = {
     { key: 'chart.donut', label: 'Modo dona', type: 'toggle' },
     { key: 'chart.nameField', label: 'Campo nombre', type: 'text', placeholder: 'name' },
     { key: 'chart.valueField', label: 'Campo valor', type: 'text', placeholder: 'value' },
-    { key: 'chart.colors', label: 'Colores (JSON)', type: 'json', placeholder: '["#hex1", "#hex2"]' },
+    { key: 'chart.colors', label: 'Colores', type: 'series', itemLabel: 'color',
+      fields: [
+        { key: 'color', label: 'Color', type: 'color' },
+      ] },
   ],
   'table': [
     { key: 'title', label: 'Título', type: 'text' },
@@ -123,11 +152,31 @@ export default function WidgetConfigPanel({ widget, onSave, onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    // Build updates via deep merge: form keys like "chart.series" accumulate
     const updates = {}
     for (const [key, value] of Object.entries(form)) {
-      Object.assign(updates, setNested({}, key, value))
+      const partial = setNested({}, key, value)
+      deepMerge(updates, partial)
     }
     onSave(widget.id, updates)
+  }
+
+  // Deep merge two objects (mutates target)
+  function deepMerge(target, source) {
+    for (const key of Object.keys(source)) {
+      if (
+        source[key] &&
+        typeof source[key] === 'object' &&
+        !Array.isArray(source[key]) &&
+        target[key] &&
+        typeof target[key] === 'object' &&
+        !Array.isArray(target[key])
+      ) {
+        deepMerge(target[key], source[key])
+      } else {
+        target[key] = source[key]
+      }
+    }
   }
 
   return (
@@ -178,26 +227,12 @@ export default function WidgetConfigPanel({ widget, onSave, onClose }) {
                     placeholder="#hex"
                   />
                 </div>
-              ) : f.type === 'json' ? (
-                <textarea
-                  className="config-textarea"
-                  rows={4}
-                  value={(() => {
-                    try {
-                      const v = getNested(widget, f.key)
-                      return v ? JSON.stringify(v, null, 2) : ''
-                    } catch { return '' }
-                  })()}
-                  onChange={e => {
-                    try {
-                      const parsed = JSON.parse(e.target.value)
-                      handleChange(f.key, parsed)
-                    } catch {
-                      // Allow editing invalid JSON — store raw string
-                      handleChange(f.key, e.target.value)
-                    }
-                  }}
-                  placeholder={f.placeholder || '[]'}
+              ) : f.type === 'series' ? (
+                <SeriesEditor
+                  value={getNested(widget, f.key) || []}
+                  onChange={val => handleChange(f.key, val)}
+                  fields={f.fields || []}
+                  itemLabel={f.itemLabel || 'item'}
                 />
               ) : (
                 <input

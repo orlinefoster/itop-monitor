@@ -877,6 +877,131 @@ tbody td {
   border-color: var(--accent-green);
 }
 
+/* ─── Series Editor ─── */
+
+.series-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.series-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.series-index {
+  font-size: 9px;
+  color: var(--text-muted);
+  min-width: 14px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.series-fields {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.series-field {
+  flex: 1;
+  min-width: 60px;
+}
+
+.series-input {
+  width: 100%;
+  padding: 3px 6px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid transparent;
+  border-radius: 3px;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.series-input:focus {
+  border-color: var(--accent-green);
+}
+
+.series-input-sm {
+  width: 70px;
+}
+
+.series-color-group {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.series-color {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  background: none;
+  flex-shrink: 0;
+}
+
+.series-remove-btn {
+  padding: 0 4px;
+  font-size: 10px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--transition);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.series-remove-btn:hover {
+  color: var(--accent-red);
+}
+
+.series-add-btn {
+  padding: 4px 10px;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--accent-green);
+  background: rgba(74, 240, 160, 0.06);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: all var(--transition);
+  align-self: flex-start;
+}
+
+.series-add-btn:hover {
+  background: rgba(74, 240, 160, 0.15);
+  border-color: var(--accent-green);
+}
+
+.series-editor-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.series-editor-empty-text {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 .config-select {
   cursor: pointer;
 }
