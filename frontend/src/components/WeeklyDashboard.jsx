@@ -8,7 +8,10 @@ export default function WeeklyDashboard({ filters }) {
   useEffect(() => {
     if (!filters) return
     setLoading(true)
-    fetchWeekly(filters.org_id, filters.team_id, filters.agent_id)
+    fetchWeekly(
+      filters.org_id, filters.team_id, filters.agent_id,
+      filters.date_from, filters.date_to
+    )
       .then(d => { setData(d); setLoading(false) })
       .catch(() => setLoading(false))
   }, [filters])

@@ -446,6 +446,71 @@ tbody td {
   color: var(--text-primary);
 }
 
+/* ─── Date filter ─── */
+
+.filter-date-group {
+  min-width: 320px;
+}
+
+.filter-date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-date {
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  outline: none;
+  transition: border-color var(--transition);
+  color-scheme: dark;
+}
+
+.filter-date:hover,
+.filter-date:focus {
+  border-color: var(--accent-green);
+}
+
+.filter-date-sep {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.filter-date-quick {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.quick-btn {
+  padding: 3px 8px;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--accent-green);
+  background: rgba(74, 240, 160, 0.06);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.quick-btn:hover {
+  background: rgba(74, 240, 160, 0.15);
+  border-color: var(--accent-green);
+}
+
+.quick-btn:active {
+  background: rgba(74, 240, 160, 0.25);
+}
+
 /* ─── Week Header ─── */
 
 .week-header {

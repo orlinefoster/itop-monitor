@@ -293,21 +293,29 @@ def get_weekly(
     org_id: int | None = None,
     team_id: int | None = None,
     agent_id: int | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
 ) -> dict:
-    """Weekly summary: new, open, resolved tickets, per-agent breakdown."""
+    """Weekly summary: new, open, resolved tickets, per-agent breakdown.
+    If date_from/date_to are omitted, defaults to current week (Mon-Sun).
+    """
     import datetime as dt
 
-    today = dt.date.today()
-    week_start = today - dt.timedelta(days=today.weekday())
-    week_end = week_start + dt.timedelta(days=6)
-    since = week_start.isoformat()
+    if date_from:
+        since = date_from
+        until = date_to if date_to else date_from  # if no end, show single-day range
+    else:
+        today = dt.date.today()
+        week_start = today - dt.timedelta(days=today.weekday())
+        since = week_start.isoformat()
+        until = date_to or (week_start + dt.timedelta(days=6)).isoformat()
 
     try:
         new_raw = itop.get_weekly_new_tickets(
-            since, org_id=org_id, team_id=team_id, agent_id=agent_id
+            since, date_to=until, org_id=org_id, team_id=team_id, agent_id=agent_id
         )
         resolved_raw = itop.get_weekly_resolved_tickets(
-            since, org_id=org_id, team_id=team_id, agent_id=agent_id
+            since, date_to=until, org_id=org_id, team_id=team_id, agent_id=agent_id
         )
         active_oql = "SELECT UserRequest WHERE status NOT IN ('closed','resolved')"
         if org_id:
@@ -369,8 +377,8 @@ def get_weekly(
     ]
 
     return WeeklySummary(
-        week_start=week_start.isoformat(),
-        week_end=week_end.isoformat(),
+        week_start=since,
+        week_end=until,
         new_tickets=len(new_raw),
         open_tickets=sum(1 for t in active_raw if t.get("status") != "resolved"),
         resolved_tickets=len(resolved_raw),

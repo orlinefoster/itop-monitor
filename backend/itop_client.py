@@ -175,11 +175,14 @@ class ItopClient:
     # ── weekly stats ─────────────────────────────────────────
 
     def get_weekly_new_tickets(
-        self, since: str, org_id: int | None = None,
+        self, date_from: str, date_to: str | None = None,
+        org_id: int | None = None,
         team_id: int | None = None, agent_id: int | None = None,
     ) -> list[dict]:
-        """Tickets created since a date, with optional filters."""
-        oql = f"SELECT UserRequest WHERE start_date >= '{since}'"
+        """Tickets created in a date range, with optional filters."""
+        oql = f"SELECT UserRequest WHERE start_date >= '{date_from}'"
+        if date_to:
+            oql += f" AND start_date <= '{date_to} 23:59:59'"
         if org_id:
             oql += f" AND org_id = {org_id}"
         if team_id:
@@ -191,11 +194,14 @@ class ItopClient:
                                       "agent_id, org_id, team_id, start_date")
 
     def get_weekly_resolved_tickets(
-        self, since: str, org_id: int | None = None,
+        self, date_from: str, date_to: str | None = None,
+        org_id: int | None = None,
         team_id: int | None = None, agent_id: int | None = None,
     ) -> list[dict]:
-        """Tickets resolved since a date, with optional filters."""
-        oql = f"SELECT UserRequest WHERE status = 'resolved' AND last_update >= '{since}'"
+        """Tickets resolved in a date range, with optional filters."""
+        oql = f"SELECT UserRequest WHERE status = 'resolved' AND last_update >= '{date_from}'"
+        if date_to:
+            oql += f" AND last_update <= '{date_to} 23:59:59'"
         if org_id:
             oql += f" AND org_id = {org_id}"
         if team_id:
