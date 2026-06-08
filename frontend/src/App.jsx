@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { fetchDashboard } from './api.js'
 import { DashboardProvider, useDashboard } from './dashboard/DashboardContext.jsx'
-import WidgetRenderer from './dashboard/widgets/WidgetRenderer.jsx'
+import DashboardBuilder from './dashboard/DashboardBuilder.jsx'
 import FilterBar from './components/FilterBar.jsx'
 import TicketsView from './components/TicketsView.jsx'
 import AgentsView from './components/AgentsView.jsx'
@@ -14,19 +14,16 @@ const SYSTEM_TABS = [
   { id: 'agentes', label: 'agentes' },
 ]
 
-const WIDTH_MAP = {
-  full: '1 / -1',
-  half: 'span 6',
-  third: 'span 4',
-  quarter: 'span 3',
-}
-
 function AppContent() {
-  const { activeDashboard, activeDashboardId, setActiveDashboardId, config } = useDashboard()
+  const { activeDashboard, activeDashboardId, setActiveDashboardId, config,
+          updateDashboard, removeDashboard, addDashboard } = useDashboard()
   const [filters, setFilters] = useState(null)
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [lastFetch, setLastFetch] = useState(null)
+  const [editing, setEditing] = useState(false)
+  const [renamingTab, setRenamingTab] = useState(null)
+  const [newTabName, setNewTabName] = useState('')
 
   const load = useCallback(async () => {
     try {
@@ -52,7 +49,6 @@ function AppContent() {
   ]
 
   const isDashboardTab = config.dashboards.some(d => d.id === activeDashboardId)
-  // activeDashboardId can be any dashboard id from config
 
   return (
     <div className="app-wrapper">
@@ -62,6 +58,15 @@ function AppContent() {
           <span className="app-title-accent">iTOP</span> Monitor
         </h1>
         <div className="header-right">
+          {isDashboardTab && (
+            <button
+              className={`refresh-btn ${editing ? 'active' : ''}`}
+              onClick={() => setEditing(!editing)}
+              style={{ marginRight: 8 }}
+            >
+              {editing ? '◉ editando' : '○ editar'}
+            </button>
+          )}
           {lastFetch && (
             <span className="last-update">última act. {lastFetch}</span>
           )}
@@ -96,31 +101,80 @@ function AppContent() {
           {/* Tabs */}
           <nav className="tab-bar">
             {allTabs.map(t => (
-              <button
-                key={t.id}
-                className={`tab-btn${activeDashboardId === t.id ? ' active' : ''}`}
-                onClick={() => setActiveDashboardId(t.id)}
-              >
-                {t.label}
-              </button>
+              <div key={t.id} className="tab-wrapper">
+                <button
+                  className={`tab-btn${activeDashboardId === t.id ? ' active' : ''}`}
+                  onClick={() => setActiveDashboardId(t.id)}
+                >
+                  {renamingTab === t.id ? (
+                    <input
+                      className="tab-rename-input"
+                      value={newTabName}
+                      onChange={e => setNewTabName(e.target.value)}
+                      onBlur={() => {
+                        if (newTabName.trim()) {
+                          updateDashboard(t.id, { name: newTabName.trim() })
+                        }
+                        setRenamingTab(null)
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          if (newTabName.trim()) {
+                            updateDashboard(t.id, { name: newTabName.trim() })
+                          }
+                          setRenamingTab(null)
+                        }
+                        if (e.key === 'Escape') setRenamingTab(null)
+                      }}
+                      autoFocus
+                      onClick={e => e.stopPropagation()}
+                    />
+                  ) : (
+                    t.label
+                  )}
+                </button>
+                {editing && t.isDashboard && (
+                  <>
+                    <button
+                      className="tab-ctrl-btn"
+                      title="Renombrar"
+                      onClick={() => { setRenamingTab(t.id); setNewTabName(t.label) }}
+                    >✎</button>
+                    <button
+                      className="tab-ctrl-btn tab-ctrl-del"
+                      title="Eliminar solapa"
+                      onClick={() => {
+                        if (config.dashboards.length > 1) {
+                          removeDashboard(t.id)
+                        }
+                      }}
+                      disabled={config.dashboards.length <= 1}
+                    >✕</button>
+                  </>
+                )}
+              </div>
             ))}
+            {editing && (
+              <button
+                className="tab-btn tab-add-btn"
+                onClick={() => {
+                  const id = `tab-${Date.now()}`
+                  addDashboard({ id, name: 'nueva solapa', filters: {}, widgets: [] })
+                  setActiveDashboardId(id)
+                }}
+              >➕</button>
+            )}
           </nav>
 
           {/* Dashboard tabs — widgets grid */}
           {isDashboardTab && activeDashboard && (
             <>
               <FilterBar onChange={setFilters} />
-              <div className="dashboard-grid">
-                {activeDashboard.widgets.map(w => (
-                  <div
-                    key={w.id}
-                    className="dashboard-grid-item"
-                    style={{ gridColumn: WIDTH_MAP[w.width] || 'span 6' }}
-                  >
-                    <WidgetRenderer widget={w} filters={filters} />
-                  </div>
-                ))}
-              </div>
+              <DashboardBuilder
+                activeDashboard={activeDashboard}
+                filters={filters}
+                editing={editing}
+              />
             </>
           )}
 
