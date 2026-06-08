@@ -229,7 +229,7 @@ export default function WidgetConfigPanel({ widget, onSave, onClose }) {
                 </div>
               ) : f.type === 'series' ? (
                 <SeriesEditor
-                  value={getNested(widget, f.key) || []}
+                  value={form[f.key] ?? []}
                   onChange={val => handleChange(f.key, val)}
                   fields={f.fields || []}
                   itemLabel={f.itemLabel || 'item'}
