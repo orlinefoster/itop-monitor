@@ -54,15 +54,56 @@ def _pick(d: dict, *keys: str) -> dict:
     return {k: d.get(k, "") for k in keys}
 
 
-def _ticket_from_raw(raw: dict) -> Ticket:
+def _agent_name_from_raw(raw: dict) -> str:
+    """Extract agent name from a raw iTop dict, trying known field names."""
+    return (
+        raw.get("agent_id_friendlyname")
+        or raw.get("agent_name")
+        or ""
+    )
+
+
+def _resolve_agent_names(
+    raw_list: list[dict[str, Any]],
+) -> dict[str, str]:
+    """
+    Batch-resolve agent names from iTop Person records.
+
+    For any raw ticket dict whose agent name is empty, look up the
+    Person by agent_id and return a dict: agent_id → friendlyname.
+    """
+    ids_to_fetch = set()
+    for r in raw_list:
+        aid = str(r.get("agent_id", ""))
+        if aid and aid != "0" and not _agent_name_from_raw(r):
+            ids_to_fetch.add(aid)
+
+    if not ids_to_fetch:
+        return {}
+
+    try:
+        oql = "SELECT Person WHERE id IN (" + ",".join(ids_to_fetch) + ")"
+        persons = itop.get("Person", key=oql, output_fields="id, friendlyname")
+        return {str(p["id"]): p.get("friendlyname", "") for p in persons}
+    except ItopError:
+        logger.warning("Failed to resolve %d agent names", len(ids_to_fetch))
+        return {}
+
+
+def _ticket_from_raw(raw: dict, name_map: dict[str, str] | None = None) -> Ticket:
     """Convert a raw iTop UserRequest dict into our Ticket model."""
+    agent_id = str(raw.get("agent_id", ""))
+    agent_name = _agent_name_from_raw(raw)
+    if not agent_name and name_map:
+        agent_name = name_map.get(agent_id, "")
+
     return Ticket(
         id=str(raw.get("id", "")),
         friendlyname=raw.get("friendlyname", ""),
         title=raw.get("title", ""),
         status=raw.get("status", ""),
-        agent_id=str(raw.get("agent_id", "")),
-        agent_name=raw.get("agent_name", ""),
+        agent_id=agent_id,
+        agent_name=agent_name,
         caller_name=raw.get("caller_id_friendlyname", ""),
         urgency=raw.get("urgency", ""),
         impact=raw.get("impact", ""),
@@ -90,7 +131,8 @@ def build_dashboard() -> dict[str, Any]:
         logger.error("iTOP error fetching tickets: %s", e)
         all_tickets_raw = []
 
-    tickets = [_ticket_from_raw(t) for t in all_tickets_raw]
+    name_map = _resolve_agent_names(all_tickets_raw)
+    tickets = [_ticket_from_raw(t, name_map) for t in all_tickets_raw]
 
     # ── My tickets ───────────────────────────────────────
     my_tickets = [t for t in tickets if agent_id is not None and t.agent_id == str(agent_id)]
@@ -253,7 +295,6 @@ def get_weekly(
     import datetime as dt
 
     today = dt.date.today()
-    # Monday of this week
     week_start = today - dt.timedelta(days=today.weekday())
     week_end = week_start + dt.timedelta(days=6)
     since = week_start.isoformat()
@@ -265,7 +306,6 @@ def get_weekly(
         resolved_raw = itop.get_weekly_resolved_tickets(
             since, org_id=org_id, team_id=team_id, agent_id=agent_id
         )
-        # Active (non-closed/resolved) tickets matching filters
         active_oql = "SELECT UserRequest WHERE status NOT IN ('closed','resolved')"
         if org_id:
             active_oql += f" AND org_id = {org_id}"
@@ -279,14 +319,24 @@ def get_weekly(
         logger.error("iTOP error in weekly query: %s", e)
         new_raw = resolved_raw = active_raw = []
 
+    # ── Resolve agent names ──
+    combined_raw = list(new_raw) + list(resolved_raw) + list(active_raw)
+    name_map = _resolve_agent_names(combined_raw)
+
+    def name_of(raw: dict) -> str:
+        n = _agent_name_from_raw(raw)
+        if not n:
+            n = name_map.get(str(raw.get("agent_id", "")), "")
+        return n
+
     # ── Per-agent aggregation ──
     agent_map: dict[str, dict] = {}
 
-    def ensure(aid: str, name_hint: str = ""):
+    def ensure(aid: str, n: str):
         if aid and aid not in agent_map:
             agent_map[aid] = {
                 "agent_id": aid,
-                "agent_name": name_hint or f"Agente {aid}",
+                "agent_name": n or f"Agente {aid}",
                 "new_assigned": 0,
                 "resolved": 0,
                 "total_active": 0,
@@ -294,17 +344,17 @@ def get_weekly(
 
     for t in new_raw:
         aid = str(t.get("agent_id", "")) or "unassigned"
-        ensure(aid, t.get("agent_name", ""))
+        ensure(aid, name_of(t))
         agent_map[aid]["new_assigned"] += 1
 
     for t in resolved_raw:
         aid = str(t.get("agent_id", "")) or "unassigned"
-        ensure(aid, t.get("agent_name", ""))
+        ensure(aid, name_of(t))
         agent_map[aid]["resolved"] += 1
 
     for t in active_raw:
         aid = str(t.get("agent_id", "")) or "unassigned"
-        ensure(aid, t.get("agent_name", ""))
+        ensure(aid, name_of(t))
         agent_map[aid]["total_active"] += 1
 
     agents_list = [
