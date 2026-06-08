@@ -1,8 +1,22 @@
 import { fieldResolver } from '../lib/fieldResolver.js'
 import { useWidgetData } from '../lib/useWidgetData.js'
 
+function parseCompute(compute) {
+  if (typeof compute === 'function') return compute
+  if (typeof compute === 'string') {
+    try {
+      // Soporta "(row) => { ... }", "row => expr", etc.
+      let body = compute.trim()
+      body = body.replace(/^(\(?\w+\)?\s*=>\s*)/, '')
+      return body.startsWith('{') ? new Function('row', body) : new Function('row', `return ${body}`)
+    } catch { return null }
+  }
+  return null
+}
+
 function computeValue(row, col) {
-  if (col.compute) return col.compute(row)
+  const fn = parseCompute(col.compute)
+  if (fn) return fn(row)
   if (col.field == null) return ''
   return row[col.field] ?? ''
 }
