@@ -29,6 +29,13 @@ export default function ComposedChartWidget({ widget, filters }) {
   const chartData = rawData.map(d => {
     const entry = { ...d }
 
+    // Aplanar pending_by_team al nivel superior: { "12": 15, "7": 20 } → entry["12"] = 15
+    if (entry.pending_by_team && typeof entry.pending_by_team === 'object') {
+      for (const [tid, count] of Object.entries(entry.pending_by_team)) {
+        entry[tid] = count
+      }
+    }
+
     // Si xKey es tipo "date" con formato ISO, mostrar solo MM-DD
     if (typeof d[xKey] === 'string' && d[xKey].includes('-') && d[xKey].length === 10) {
       entry._label = d[xKey].slice(5)
