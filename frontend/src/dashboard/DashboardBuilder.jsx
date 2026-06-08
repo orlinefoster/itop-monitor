@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useDashboard } from './DashboardContext.jsx'
+import { exportConfig, importConfig } from './persistence/importExport.js'
 import WidgetRenderer from './widgets/WidgetRenderer.jsx'
 import WidgetConfigPanel from './WidgetConfigPanel.jsx'
 import WidgetTypeSelector from './WidgetTypeSelector.jsx'
@@ -14,16 +15,17 @@ const WIDTH_MAP = {
 let _widgetCounter = Date.now()
 function newId() { return `w-${_widgetCounter++}` }
 
-export default function DashboardBuilder({ activeDashboard, filters }) {
+export default function DashboardBuilder({ activeDashboard, filters, editing }) {
   const {
     addDashboard, removeDashboard, updateDashboard,
     addWidget, removeWidget, updateWidget, moveWidget,
-    setActiveDashboardId,
+    setActiveDashboardId, exportJson, importJson, resetToDefaults,
   } = useDashboard()
 
-  const [editing, setEditing] = useState(false)
   const [editingWidget, setEditingWidget] = useState(null)
   const [showingGallery, setShowingGallery] = useState(false)
+  const [importError, setImportError] = useState(null)
+  const fileInputRef = useRef(null)
 
   const handleEditWidget = (widget) => setEditingWidget(widget)
   const handleSaveWidget = (widgetId, updates) => {
@@ -34,7 +36,7 @@ export default function DashboardBuilder({ activeDashboard, filters }) {
   const handleAddWidget = (type) => {
     setShowingGallery(false)
     const widget = {
-      id: newId(),
+      id: `w-${Date.now()}`,
       type,
       title: type.replace('-', ' '),
       width: 'full',
@@ -49,34 +51,64 @@ export default function DashboardBuilder({ activeDashboard, filters }) {
     setEditingWidget(widget)
   }
 
+  const handleExport = () => {
+    exportConfig(exportJson())
+  }
+
+  const handleImport = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const config = await importConfig(file)
+      importJson(config)
+      setImportError(null)
+    } catch (err) {
+      setImportError(err.message)
+    }
+    // Reset input so same file can be re-imported
+    e.target.value = ''
+  }
+
   return (
     <>
       {/* ── Builder toolbar ── */}
-      <div className="builder-toolbar">
-        <button
-          className={`builder-toggle ${editing ? 'active' : ''}`}
-          onClick={() => setEditing(!editing)}
-        >
-          {editing ? '◉ editando' : '○ editar'}
-        </button>
-        {editing && (
-          <>
-            <button className="builder-btn" onClick={() => setShowingGallery(true)}>
-              ➕ widget
-            </button>
-            <button
-              className="builder-btn"
-              onClick={() => {
-                const id = `tab-${Date.now()}`
-                addDashboard({ id, name: 'nueva solapa', filters: {}, widgets: [] })
-                setActiveDashboardId(id)
-              }}
-            >
-              ➕ solapa
-            </button>
-          </>
-        )}
-      </div>
+      {editing && (
+        <div className="builder-toolbar">
+          <button className="builder-btn" onClick={() => setShowingGallery(true)}>
+            ➕ widget
+          </button>
+          <button
+            className="builder-btn"
+            onClick={() => {
+              const id = `tab-${Date.now()}`
+              addDashboard({ id, name: 'nueva solapa', filters: {}, widgets: [] })
+              setActiveDashboardId(id)
+            }}
+          >
+            ➕ solapa
+          </button>
+          <span className="builder-sep" />
+          <button className="builder-btn builder-btn-io" onClick={handleExport}>
+            ↓ exportar
+          </button>
+          <button className="builder-btn builder-btn-io" onClick={() => fileInputRef.current?.click()}>
+            ↑ importar
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            style={{ display: 'none' }}
+            onChange={handleImport}
+          />
+          <button className="builder-btn builder-btn-danger" onClick={resetToDefaults}>
+            ↺ reset
+          </button>
+          {importError && (
+            <span className="builder-error">✕ {importError}</span>
+          )}
+        </div>
+      )}
 
       {/* ── Widget grid ── */}
       <div className="dashboard-grid">

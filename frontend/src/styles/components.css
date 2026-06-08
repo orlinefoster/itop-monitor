@@ -668,6 +668,37 @@ tbody td {
   border-color: var(--accent-green);
 }
 
+.builder-btn-io {
+  color: var(--text-muted);
+}
+
+.builder-btn-io:hover {
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+  background: rgba(88, 166, 255, 0.1);
+}
+
+.builder-btn-danger {
+  color: var(--accent-red);
+}
+
+.builder-btn-danger:hover {
+  border-color: var(--accent-red);
+  background: rgba(240, 64, 64, 0.1);
+}
+
+.builder-sep {
+  width: 1px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+.builder-error {
+  font-size: 10px;
+  color: var(--accent-red);
+  font-family: var(--font-mono);
+}
+
 /* Tab controls */
 .tab-wrapper {
   display: flex;

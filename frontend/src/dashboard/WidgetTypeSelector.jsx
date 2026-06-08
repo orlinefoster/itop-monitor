@@ -12,6 +12,30 @@ const WIDGET_TYPES = [
     icon: '📊',
   },
   {
+    type: 'line-chart',
+    name: 'Gráfico de líneas',
+    description: 'Una o más líneas en el tiempo. Tendencia de métricas.',
+    icon: '📈',
+  },
+  {
+    type: 'bar-chart',
+    name: 'Gráfico de barras',
+    description: 'Barras verticales. Comparar valores entre categorías.',
+    icon: '📊',
+  },
+  {
+    type: 'area-chart',
+    name: 'Gráfico de área',
+    description: 'Área rellena. Evolución con volumen, opcionalmente apilado.',
+    icon: '🗻',
+  },
+  {
+    type: 'pie-chart',
+    name: 'Gráfico de torta',
+    description: 'Torta o dona. Distribución por grupo, equipo, estado.',
+    icon: '🥧',
+  },
+  {
     type: 'table',
     name: 'Tabla',
     description: 'Datos en filas y columnas, con totales automáticos. Ideal para rankings.',
