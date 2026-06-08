@@ -74,6 +74,14 @@ export default function DashboardBuilder({ activeDashboard, filters, editing }) 
     setEditingWidget(widget)
   }
 
+  const handlePreset = (preset) => {
+    setShowingGallery(false)
+    // Cada preset agrega uno o más widgets con un click
+    for (const w of preset.widgets) {
+      addWidget(activeDashboard.id, { ...w, id: `pw-${Date.now()}-${Math.random().toString(36).slice(2, 6)}` })
+    }
+  }
+
   const handleExport = () => {
     exportConfig(exportJson())
   }
@@ -177,6 +185,7 @@ export default function DashboardBuilder({ activeDashboard, filters, editing }) 
       {showingGallery && (
         <WidgetTypeSelector
           onSelect={handleAddWidget}
+          onPreset={handlePreset}
           onClose={() => setShowingGallery(false)}
         />
       )}

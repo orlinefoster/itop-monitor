@@ -1,3 +1,5 @@
+import { PRESETS } from './presets.js'
+
 const WIDGET_TYPES = [
   {
     type: 'kpi',
@@ -43,7 +45,7 @@ const WIDGET_TYPES = [
   },
 ]
 
-export default function WidgetTypeSelector({ onSelect, onClose }) {
+export default function WidgetTypeSelector({ onSelect, onPreset, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-panel modal-gallery" onClick={e => e.stopPropagation()}>
@@ -51,18 +53,51 @@ export default function WidgetTypeSelector({ onSelect, onClose }) {
           <h3 className="modal-title">agregar widget</h3>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
-        <div className="gallery-grid">
-          {WIDGET_TYPES.map(t => (
-            <button
-              key={t.type}
-              className="gallery-card"
-              onClick={() => onSelect(t.type)}
-            >
-              <span className="gallery-icon">{t.icon}</span>
-              <span className="gallery-name">{t.name}</span>
-              <span className="gallery-desc">{t.description}</span>
-            </button>
-          ))}
+
+        {/* ── Presets ── */}
+        <div className="gallery-section">
+          <span className="gallery-section-title">presets</span>
+          <p className="gallery-section-desc">Plantillas listas para usar, sin configurar nada</p>
+          <div className="gallery-grid">
+            {PRESETS.map(p => (
+              <button
+                key={p.id}
+                className="gallery-card gallery-card-preset"
+                onClick={() => onPreset(p)}
+              >
+                <span className="gallery-icon">{p.icon}</span>
+                <div className="gallery-info">
+                  <span className="gallery-name">{p.name}</span>
+                  <span className="gallery-desc">{p.description}</span>
+                  <span className="gallery-badge">{p.widgets.length} widget{p.widgets.length > 1 ? 's' : ''}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Separator ── */}
+        <div className="gallery-sep" />
+
+        {/* ── Custom widgets ── */}
+        <div className="gallery-section">
+          <span className="gallery-section-title">personalizados</span>
+          <p className="gallery-section-desc">Empezar desde cero y configurar cada detalle</p>
+          <div className="gallery-grid">
+            {WIDGET_TYPES.map(t => (
+              <button
+                key={t.type}
+                className="gallery-card"
+                onClick={() => onSelect(t.type)}
+              >
+                <span className="gallery-icon">{t.icon}</span>
+                <div className="gallery-info">
+                  <span className="gallery-name">{t.name}</span>
+                  <span className="gallery-desc">{t.description}</span>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

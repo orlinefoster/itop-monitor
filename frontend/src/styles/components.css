@@ -1093,54 +1093,67 @@ tbody td {
   max-width: 550px;
 }
 
-.gallery-grid {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.gallery-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  cursor: pointer;
-  text-align: left;
-  transition: all var(--transition);
-  font-family: inherit;
-  color: inherit;
-  width: 100%;
-}
-
-.gallery-card:hover {
-  border-color: var(--accent-green);
-  background: rgba(74, 240, 160, 0.04);
-}
-
-.gallery-icon {
-  font-size: 20px;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-secondary);
-  border-radius: var(--radius);
-  flex-shrink: 0;
-}
-
-.gallery-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-primary);
-  min-width: 80px;
-}
-
 .gallery-desc {
   font-size: 10px;
   color: var(--text-muted);
+}
+
+.gallery-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.gallery-card-preset {
+  border-color: rgba(74, 240, 160, 0.2);
+  background: rgba(74, 240, 160, 0.03);
+}
+
+.gallery-card-preset:hover {
+  border-color: var(--accent-green);
+  background: rgba(74, 240, 160, 0.08);
+}
+
+.gallery-badge {
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-green);
+  background: rgba(74, 240, 160, 0.1);
+  padding: 1px 6px;
+  border-radius: 6px;
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+.gallery-section {
+  padding: 12px 16px 4px;
+}
+
+.gallery-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+}
+
+.gallery-section-desc {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin: 2px 0 8px;
+}
+
+.gallery-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 8px 16px;
+}
+
+.gallery-grid {
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
