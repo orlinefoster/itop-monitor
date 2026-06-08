@@ -84,7 +84,7 @@ def build_dashboard() -> dict[str, Any]:
     tickets = [_ticket_from_raw(t) for t in all_tickets_raw]
 
     # ── My tickets ───────────────────────────────────────
-    my_tickets = [t for t in tickets if t.agent_id == str(agent_id)]
+    my_tickets = [t for t in tickets if agent_id is not None and t.agent_id == str(agent_id)]
 
     # ── Per-agent aggregation ────────────────────────────
     agent_map: dict[str, dict] = {}
@@ -134,9 +134,13 @@ def build_dashboard() -> dict[str, Any]:
     )
 
     # ── My summary ────────────────────────────────────────
+    my_id_str = str(agent_id) if agent_id is not None else "0"
     my_agent = next(
-        (a for a in agents_list if a.agent_id == str(agent_id)),
-        AgentSummary(agent_id=str(agent_id), agent_name=settings.agent_name),
+        (a for a in agents_list if a.agent_id == my_id_str),
+        AgentSummary(
+            agent_id=my_id_str,
+            agent_name=settings.agent_name,
+        ),
     )
 
     return DashboardData(
