@@ -392,6 +392,41 @@ def get_weekly(
 # ── Flow endpoint (timeline chart) ────────────────────────────
 
 
+def _team_name_of(raw: dict) -> str:
+    """Extract team name from raw iTOP data."""
+    return raw.get("team_id_friendlyname") or raw.get("team_name") or ""
+
+
+def _resolve_team_names(raw_list: list[dict]) -> dict[str, str]:
+    """Build a team_id → name map from raw ticket data, falling back to
+    a Team fetch for any IDs we don't have names for."""
+    team_map: dict[str, str] = {}
+    ids_without_name: set[str] = set()
+
+    for r in raw_list:
+        tid = str(r.get("team_id", ""))
+        if not tid or tid == "0":
+            continue
+        name = _team_name_of(r)
+        if name:
+            team_map[tid] = name
+        else:
+            ids_without_name.add(tid)
+
+    # Fetch any unresolved team names
+    if ids_without_name:
+        try:
+            oql = "SELECT Team WHERE id IN (" + ",".join(ids_without_name) + ")"
+            teams_raw = itop.get("Team", key=oql, output_fields="id, friendlyname, name")
+            for t in teams_raw:
+                tid = str(t["id"])
+                team_map[tid] = t.get("friendlyname") or t.get("name", tid)
+        except ItopError:
+            logger.warning("Failed to resolve %d team names", len(ids_without_name))
+
+    return team_map
+
+
 @app.get("/api/flow")
 def get_flow(
     date_from: str | None = None,
@@ -401,7 +436,8 @@ def get_flow(
     agent_id: int | None = None,
 ) -> dict:
     """Daily flow data: new tickets, resolved tickets, and cumulative pending
-    over a date range. Defaults to the current week.
+    over a date range, broken down by team for the pending stack.
+    Defaults to the current week.
     """
     import datetime as dt
 
@@ -414,6 +450,8 @@ def get_flow(
         week_start = today - dt.timedelta(days=today.weekday())
         since = week_start.isoformat()
         until = date_to or (week_start + dt.timedelta(days=6)).isoformat()
+
+    team_fields = "id, status, start_date, team_id, team_id_friendlyname, agent_id"
 
     try:
         # Active tickets before the range (= starting backlog)
@@ -433,7 +471,7 @@ def get_flow(
         if agent_id:
             new_oql += f" AND agent_id = {agent_id}"
         new_raw = itop.get("UserRequest", key=new_oql,
-                           output_fields="id, status, start_date")
+                           output_fields=team_fields)
 
         # Tickets resolved within the range
         res_oql = (
@@ -448,20 +486,59 @@ def get_flow(
         if agent_id:
             res_oql += f" AND agent_id = {agent_id}"
         resolved_raw = itop.get("UserRequest", key=res_oql,
-                                output_fields="id, status, last_update")
+                                output_fields=team_fields)
     except ItopError as e:
         logger.error("iTOP error in flow query: %s", e)
         backlog_raw = new_raw = resolved_raw = []
+
+    # ── Resolve team names ──
+    combined = list(backlog_raw) + list(new_raw) + list(resolved_raw)
+    team_map = _resolve_team_names(combined)
+
+    # ── Helper: get team_id from raw, returning "" for none ──
+    def get_tid(raw: dict) -> str:
+        tid = str(raw.get("team_id", ""))
+        return tid if tid and tid != "0" else ""
 
     # ── Build daily data points ──
     start = dt.date.fromisoformat(since)
     end = dt.date.fromisoformat(until)
     days: list[FlowDay] = []
-    cumulative = len(backlog_raw)
+
+    # Track cumulative pending per team
+    team_cumulative: dict[str, int] = {}
+    for t in backlog_raw:
+        tid = get_tid(t)
+        if tid:
+            team_cumulative[tid] = team_cumulative.get(tid, 0) + 1
+        else:
+            team_cumulative[""] = team_cumulative.get("", 0) + 1
+
+    total_cumulative = len(backlog_raw)
 
     for i in range((end - start).days + 1):
         day = start + dt.timedelta(days=i)
         day_str = day.isoformat()
+
+        # Count new by team
+        for t in new_raw:
+            if t.get("start_date", "").startswith(day_str):
+                tid = get_tid(t)
+                team_cumulative[tid] = team_cumulative.get(tid, 0) + 1
+                total_cumulative += 1
+
+        # Count resolved by team
+        for t in resolved_raw:
+            if t.get("last_update", "").startswith(day_str):
+                tid = get_tid(t)
+                team_cumulative[tid] = team_cumulative.get(tid, 0) - 1
+                total_cumulative -= 1
+
+        # Snapshot for this day
+        pending_by_team = {
+            tid: count for tid, count in team_cumulative.items()
+            if count > 0
+        }
 
         new_count = sum(
             1 for t in new_raw
@@ -471,16 +548,23 @@ def get_flow(
             1 for t in resolved_raw
             if t.get("last_update", "").startswith(day_str)
         )
-        cumulative = cumulative + new_count - resolved_count
 
         days.append(FlowDay(
             date=day_str,
             new=new_count,
             resolved=resolved_count,
-            pending=max(cumulative, 0),
+            pending=max(total_cumulative, 0),
+            pending_by_team=pending_by_team,
         ))
 
-    return FlowData(days=days, starting_pending=len(backlog_raw)).model_dump()
+    return FlowData(
+        days=days,
+        starting_pending=len(backlog_raw),
+        teams=team_map,
+    ).model_dump()
+
+
+# ── Direct run ───────────────────────────────────────────────
 
 
 # ── Direct run ───────────────────────────────────────────────

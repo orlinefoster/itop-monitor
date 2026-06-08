@@ -97,8 +97,10 @@ class FlowDay(BaseModel):
     new: int = 0
     resolved: int = 0
     pending: int = 0
+    pending_by_team: dict[str, int] = {}  # team_id → count
 
 
 class FlowData(BaseModel):
     days: list[FlowDay] = []
     starting_pending: int = 0
+    teams: dict[str, str] = {}  # team_id → team_name

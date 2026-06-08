@@ -145,7 +145,8 @@ class ItopClient:
         if agent_id:
             oql += f" AND agent_id = {agent_id}"
         return self.get("UserRequest", key=oql,
-                        output_fields="id, agent_id, friendlyname, status")
+                        output_fields="id, agent_id, friendlyname, status, "
+                                      "team_id, team_id_friendlyname")
 
     def get_agent_tickets(self, agent_id: int) -> list[dict]:
         """Active tickets assigned to a specific agent."""
