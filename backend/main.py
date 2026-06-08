@@ -451,7 +451,7 @@ def get_flow(
         since = week_start.isoformat()
         until = date_to or (week_start + dt.timedelta(days=6)).isoformat()
 
-    team_fields = "id, status, start_date, team_id, team_id_friendlyname, agent_id"
+    team_fields = "id, status, start_date, last_update, team_id, team_id_friendlyname, agent_id"
 
     try:
         # Active tickets before the range (= starting backlog)
