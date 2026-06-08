@@ -3,72 +3,53 @@ export default function StatsCards({ mySummary, teamStats }) {
 
   const cards = [
     {
-      label: '📥 Mis tickets',
+      label: 'mis tickets',
       value: mySummary.pending,
       sub: `${mySummary.resolved_today} resueltos hoy`,
-      color: mySummary.pending > mySummary.wip_limit ? '#da3633' : '#238636',
+      color: mySummary.pending > mySummary.wip_limit
+        ? 'var(--accent-red)'
+        : 'var(--accent-green)',
     },
     {
-      label: '📋 Equipo',
+      label: 'equipo',
       value: teamStats.total_pending,
       sub: `prom. ${teamStats.avg_per_agent} x agente`,
-      color: '#58a6ff',
+      color: 'var(--accent-blue)',
     },
     {
-      label: '⏳ Cuello de botella',
+      label: 'cuello de botella',
       value: teamStats.bottleneck_agents?.length ?? 0,
       sub: teamStats.bottleneck_agents?.length
         ? teamStats.bottleneck_agents.join(', ')
-        : 'Nadie sobrecargado',
-      color: teamStats.bottleneck_agents?.length ? '#d29922' : '#238636',
+        : 'nadie sobrecargado',
+      color: teamStats.bottleneck_agents?.length
+        ? 'var(--accent-yellow)'
+        : 'var(--accent-green)',
     },
     {
-      label: '🏆 Meta WIP',
+      label: 'límite wip',
       value: `≤ ${mySummary.wip_limit}`,
-      sub: mySummary.wip_ok ? '✅ En verde' : '🔴 Excedido',
-      color: mySummary.wip_ok ? '#238636' : '#da3633',
+      sub: mySummary.wip_ok ? 'en verde' : 'excedido',
+      color: mySummary.wip_ok
+        ? 'var(--accent-green)'
+        : 'var(--accent-red)',
     },
   ]
 
   return (
-    <div style={styles.grid}>
+    <div className="stats-grid">
       {cards.map((c, i) => (
-        <div key={i} style={styles.card}>
-          <div style={styles.label}>{c.label}</div>
-          <div style={{ ...styles.value, color: c.color }}>{c.value}</div>
-          <div style={styles.sub}>{c.sub}</div>
+        <div key={i} className="stat-card">
+          <span className="stat-label">{c.label}</span>
+          <span
+            className="stat-value"
+            style={{ color: c.color }}
+          >
+            {c.value}
+          </span>
+          <span className="stat-sub">{c.sub}</span>
         </div>
       ))}
     </div>
   )
-}
-
-const styles = {
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-    gap: 16,
-    marginBottom: 24,
-  },
-  card: {
-    backgroundColor: '#161b22',
-    border: '1px solid #30363d',
-    borderRadius: 10,
-    padding: '20px 18px',
-  },
-  label: {
-    fontSize: '0.85rem',
-    color: '#8b949e',
-    marginBottom: 6,
-  },
-  value: {
-    fontSize: '2.2rem',
-    fontWeight: 700,
-    lineHeight: 1.2,
-  },
-  sub: {
-    fontSize: '0.8rem',
-    color: '#8b949e',
-    marginTop: 6,
-  },
 }

@@ -1,0 +1,363 @@
+/* ── iTOP Monitor Component Styles ── */
+
+/* ─── Layout ─── */
+
+.app-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+  min-height: 100vh;
+}
+
+/* ─── Header ─── */
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.app-title-accent {
+  color: var(--accent-green);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.last-update {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.refresh-btn {
+  padding: 6px 14px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--accent-green);
+  background: rgba(74, 240, 160, 0.08);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.refresh-btn:hover {
+  background: rgba(74, 240, 160, 0.15);
+  border-color: var(--accent-green);
+}
+
+.refresh-btn:active {
+  background: rgba(74, 240, 160, 0.25);
+}
+
+/* ─── Error Banner ─── */
+
+.error-banner {
+  background: rgba(240, 64, 64, 0.1);
+  border: 1px solid var(--accent-red);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--accent-red);
+}
+
+.retry-btn {
+  padding: 4px 10px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--bg-primary);
+  background: var(--accent-red);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.retry-btn:hover {
+  opacity: 0.85;
+}
+
+/* ─── Loading ─── */
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  gap: 16px;
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent-green);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ─── Bottleneck Alert ─── */
+
+.bottleneck-banner {
+  background: rgba(210, 153, 34, 0.08);
+  border: 1px solid var(--accent-yellow);
+  border-left: 3px solid var(--accent-yellow);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.bottleneck-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.bottleneck-title {
+  font-weight: 600;
+  color: var(--accent-yellow);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+  margin-bottom: 2px;
+}
+
+.bottleneck-text {
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* ─── Stat Cards Grid ─── */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 800px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color var(--transition);
+}
+
+.stat-card:hover {
+  border-color: var(--text-muted);
+}
+
+.stat-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-sub {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+/* ─── Section (Table Container) ─── */
+
+.section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+}
+
+.section-count {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.section-empty {
+  padding: 32px 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ─── Tables ─── */
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+thead th {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition);
+}
+
+tbody tr:hover {
+  background: rgba(74, 240, 160, 0.03);
+}
+
+tbody tr.is-you {
+  background: rgba(45, 91, 140, 0.08);
+}
+
+tbody tr.is-you:hover {
+  background: rgba(45, 91, 140, 0.14);
+}
+
+tbody td {
+  padding: 8px 10px;
+  vertical-align: middle;
+  line-height: 1.4;
+}
+
+/* ─── Badges ─── */
+
+.you-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-blue);
+  background: rgba(45, 91, 140, 0.2);
+  border: 1px solid rgba(45, 91, 140, 0.3);
+  border-radius: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  font-size: 10px;
+  font-weight: 500;
+  border-radius: 10px;
+  text-transform: lowercase;
+}
+
+.status-new      { background: rgba(88, 166, 255, 0.12); color: var(--status-new); }
+.status-assigned { background: rgba(210, 153, 34, 0.12);  color: var(--status-assigned); }
+.status-resolved { background: rgba(63, 185, 80, 0.12);  color: var(--status-resolved); }
+.status-closed   { background: rgba(139, 148, 158, 0.12); color: var(--status-closed); }
+.status-pending  { background: rgba(188, 140, 255, 0.12); color: var(--status-pending); }
+
+/* Urgency colors */
+.urgency-1 { color: var(--urg-low); }
+.urgency-2 { color: var(--urg-medium); }
+.urgency-3 { color: var(--urg-high); }
+.urgency-4 { color: var(--urg-urgent); }
+
+/* WIP status */
+.wip-ok {
+  color: var(--accent-green);
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.wip-over {
+  color: var(--accent-red);
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}

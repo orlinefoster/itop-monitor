@@ -1,0 +1,38 @@
+/* ── Lain Dark Theme — iTOP Monitor ── */
+
+:root {
+  /* Backgrounds */
+  --bg-primary: #0a0a0e;
+  --bg-secondary: #14141a;
+  --bg-tertiary: #1c1c24;
+
+  /* Text */
+  --text-primary: #d4cdbc;
+  --text-secondary: #8a8478;
+  --text-muted: #5a554a;
+
+  /* Accents */
+  --accent-green: #4af0a0;
+  --accent-red: #f04040;
+  --accent-blue: #2d5b8c;
+  --accent-yellow: #d29922;
+
+  /* Status colors */
+  --status-new: #58a6ff;
+  --status-assigned: #d29922;
+  --status-resolved: #3fb950;
+  --status-closed: #8b949e;
+  --status-pending: #bc8cff;
+
+  /* Urgency */
+  --urg-low: #3fb950;
+  --urg-medium: #d29922;
+  --urg-high: #f85149;
+  --urg-urgent: #da3633;
+
+  /* UI */
+  --border: #2a2a32;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+  --radius: 4px;
+  --transition: 200ms ease;
+}
