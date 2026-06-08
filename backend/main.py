@@ -144,7 +144,10 @@ def build_dashboard() -> dict[str, Any]:
         if aid not in agent_map:
             agent_map[aid] = {
                 "agent_id": aid,
-                "agent_name": t.agent_name or f"Agente {aid}",
+                "agent_name": (
+                    "Sin asignar" if aid in ("0", "unassigned", "")
+                    else t.agent_name or f"Agente {aid}"
+                ),
                 "pending": 0,
                 "resolved_today": 0,
                 "overdue": 0,
@@ -185,7 +188,7 @@ def build_dashboard() -> dict[str, Any]:
     )
 
     # ── My summary ────────────────────────────────────────
-    my_id_str = str(agent_id) if agent_id is not None else "0"
+    my_id_str = str(agent_id) if agent_id is not None and agent_id != 0 else ""
     my_agent = next(
         (a for a in agents_list if a.agent_id == my_id_str),
         AgentSummary(
@@ -336,7 +339,10 @@ def get_weekly(
         if aid and aid not in agent_map:
             agent_map[aid] = {
                 "agent_id": aid,
-                "agent_name": n or f"Agente {aid}",
+                "agent_name": (
+                    "Sin asignar" if aid in ("0", "unassigned", "")
+                    else n or f"Agente {aid}"
+                ),
                 "new_assigned": 0,
                 "resolved": 0,
                 "total_active": 0,
