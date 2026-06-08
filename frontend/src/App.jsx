@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { fetchDashboard } from './api.js'
 import { DashboardProvider, useDashboard } from './dashboard/DashboardContext.jsx'
 import DashboardBuilder from './dashboard/DashboardBuilder.jsx'
+import WikiModal from './dashboard/WikiModal.jsx'
 import FilterBar from './components/FilterBar.jsx'
 import TicketsView from './components/TicketsView.jsx'
 import AgentsView from './components/AgentsView.jsx'
@@ -24,6 +25,7 @@ function AppContent() {
   const [editing, setEditing] = useState(false)
   const [renamingTab, setRenamingTab] = useState(null)
   const [newTabName, setNewTabName] = useState('')
+  const [showWiki, setShowWiki] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -71,6 +73,7 @@ function AppContent() {
             <span className="last-update">última act. {lastFetch}</span>
           )}
           <button onClick={load} className="refresh-btn">⟳ refrescar</button>
+          <button onClick={() => setShowWiki(true)} className="wiki-btn">?</button>
         </div>
       </header>
 
@@ -183,6 +186,8 @@ function AppContent() {
           {activeDashboardId === 'agentes' && <AgentsView data={data} />}
         </>
       )}
+
+      {showWiki && <WikiModal onClose={() => setShowWiki(false)} />}
     </div>
   )
 }

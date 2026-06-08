@@ -1198,3 +1198,111 @@ tbody td {
   color: var(--text-primary);
   min-width: 80px;
 }
+
+/* ── Wiki button ── */
+
+.wiki-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  font-family: inherit;
+  margin-left: 6px;
+}
+
+.wiki-btn:hover {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+  background: rgba(74, 240, 160, 0.06);
+}
+
+/* ── Wiki Modal ── */
+
+.wiki-modal {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 700px;
+  max-width: 90vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.wiki-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 20px 20px;
+}
+
+.wiki-section {
+  margin-bottom: 20px;
+}
+
+.wiki-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.wiki-subtitle {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin: -4px 0 0;
+}
+
+.wiki-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin: 6px 0;
+}
+
+.wiki-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+}
+
+.wiki-table th,
+.wiki-table td {
+  padding: 5px 8px;
+  text-align: left;
+  border: 1px solid var(--border);
+}
+
+.wiki-table th {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 9px;
+}
+
+.wiki-table td {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+.wiki-table code {
+  font-size: 9px;
+  background: rgba(74, 240, 160, 0.08);
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: var(--accent-green);
+}
