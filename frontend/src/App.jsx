@@ -1,23 +1,32 @@
 import { useState, useEffect, useCallback } from 'react'
 import { fetchDashboard } from './api.js'
+import { DashboardProvider, useDashboard } from './dashboard/DashboardContext.jsx'
+import WidgetRenderer from './dashboard/widgets/WidgetRenderer.jsx'
 import FilterBar from './components/FilterBar.jsx'
-import WeeklyDashboard from './components/WeeklyDashboard.jsx'
 import TicketsView from './components/TicketsView.jsx'
 import AgentsView from './components/AgentsView.jsx'
 
 const POLL_INTERVAL = 30_000
-const TABS = [
-  { key: 'dashboard', label: 'resumen' },
-  { key: 'tickets',   label: 'tickets' },
-  { key: 'agentes',   label: 'agentes' },
+
+// Tablas del sistema — siempre visibles
+const SYSTEM_TABS = [
+  { id: 'tickets', label: 'tickets' },
+  { id: 'agentes', label: 'agentes' },
 ]
 
-export default function App() {
+const WIDTH_MAP = {
+  full: '1 / -1',
+  half: 'span 6',
+  third: 'span 4',
+  quarter: 'span 3',
+}
+
+function AppContent() {
+  const { activeDashboard, activeDashboardId, setActiveDashboardId, config } = useDashboard()
+  const [filters, setFilters] = useState(null)
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [lastFetch, setLastFetch] = useState(null)
-  const [activeTab, setActiveTab] = useState('dashboard')
-  const [filters, setFilters] = useState(null)
 
   const load = useCallback(async () => {
     try {
@@ -35,6 +44,15 @@ export default function App() {
     const id = setInterval(load, POLL_INTERVAL)
     return () => clearInterval(id)
   }, [load])
+
+  // Build tab list: dashboards del usuario + tabs del sistema
+  const allTabs = [
+    ...config.dashboards.map(d => ({ id: d.id, label: d.name, isDashboard: true })),
+    ...SYSTEM_TABS.map(t => ({ id: t.id, label: t.label, isDashboard: false })),
+  ]
+
+  const isDashboardTab = config.dashboards.some(d => d.id === activeDashboardId)
+  // activeDashboardId can be any dashboard id from config
 
   return (
     <div className="app-wrapper">
@@ -77,34 +95,48 @@ export default function App() {
         <>
           {/* Tabs */}
           <nav className="tab-bar">
-            {TABS.map(t => (
+            {allTabs.map(t => (
               <button
-                key={t.key}
-                className={`tab-btn${activeTab === t.key ? ' active' : ''}`}
-                onClick={() => setActiveTab(t.key)}
+                key={t.id}
+                className={`tab-btn${activeDashboardId === t.id ? ' active' : ''}`}
+                onClick={() => setActiveDashboardId(t.id)}
               >
                 {t.label}
               </button>
             ))}
           </nav>
 
-          {/* Filter bar — visible on dashboard tab */}
-          {activeTab === 'dashboard' && (
-            <FilterBar onChange={setFilters} />
+          {/* Dashboard tabs — widgets grid */}
+          {isDashboardTab && activeDashboard && (
+            <>
+              <FilterBar onChange={setFilters} />
+              <div className="dashboard-grid">
+                {activeDashboard.widgets.map(w => (
+                  <div
+                    key={w.id}
+                    className="dashboard-grid-item"
+                    style={{ gridColumn: WIDTH_MAP[w.width] || 'span 6' }}
+                  >
+                    <WidgetRenderer widget={w} filters={filters} />
+                  </div>
+                ))}
+              </div>
+            </>
           )}
 
-          {/* Tab content */}
-          {activeTab === 'dashboard' && (
-            <WeeklyDashboard filters={filters} />
-          )}
-          {activeTab === 'tickets' && (
-            <TicketsView data={data} />
-          )}
-          {activeTab === 'agentes' && (
-            <AgentsView data={data} />
-          )}
+          {/* System tabs */}
+          {activeDashboardId === 'tickets' && <TicketsView data={data} />}
+          {activeDashboardId === 'agentes' && <AgentsView data={data} />}
         </>
       )}
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <DashboardProvider>
+      <AppContent />
+    </DashboardProvider>
   )
 }

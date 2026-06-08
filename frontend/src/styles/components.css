@@ -543,3 +543,25 @@ tbody td {
 .flow-chart-section .recharts-surface {
   cursor: crosshair;
 }
+
+/* ─── Dashboard Grid ─── */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.dashboard-grid-item {
+  min-width: 0;
+}
+
+@media (max-width: 800px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-grid-item {
+    grid-column: 1 !important;
+  }
+}
